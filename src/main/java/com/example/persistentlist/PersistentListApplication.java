@@ -9,15 +9,16 @@ import org.springframework.web.bind.annotation.*;
 @EnableAutoConfiguration
 public class PersistentListApplication {
 
-    private List<List<Integer>> listVersions;
+    private List<List<Integer>> versions;
     private int currentVersion;
 
     public PersistentListApplication() {
-        listVersions = new ArrayList<>();
-        listVersions.add(new ArrayList<>());
+        versions = new ArrayList<>();
+        versions.add(new ArrayList<>());
         currentVersion = 1;
     }
 
+    // Request: GET /lists
     @GetMapping("/lists")
     public Map<String, List<Integer>> getVersions() {
         Map<String, List<Integer>> response = new HashMap<>();
@@ -25,44 +26,48 @@ public class PersistentListApplication {
         return response;
     }
 
+    // Request: GET /list/{id}
     @GetMapping("/list/{id}")
     public List<Integer> getList(@PathVariable int id) {
-        return listVersions.get(id - 1);
+        return versions.get(id - 1);
     }
 
+    // Request: POST /list/{id}
     @PostMapping("/list/{id}")
     public Map<String, Integer> addToList(@PathVariable int id, @RequestBody Map<String, Integer> request) {
         int newElement = request.get("newElement");
-        List<Integer> currentList = new ArrayList<>(listVersions.get(id - 1));
+        List<Integer> currentList = new ArrayList<>(versions.get(id - 1));
         currentList.add(newElement);
-        listVersions.add(currentList);
+        versions.add(currentList);
         currentVersion++;
         Map<String, Integer> response = new HashMap<>();
         response.put("listVersion", currentVersion);
         return response;
     }
 
+    // Request: DELETE /list/{id}
     @DeleteMapping("/list/{id}")
     public Map<String, Integer> removeFromList(@PathVariable int id, @RequestBody Map<String, Integer> request) {
         int oldElement = request.get("oldElement");
-        List<Integer> currentList = new ArrayList<>(listVersions.get(id - 1));
+        List<Integer> currentList = new ArrayList<>(versions.get(id - 1));
         currentList.removeIf(element -> element == oldElement);
-        listVersions.add(currentList);
+        versions.add(currentList);
         currentVersion++;
         Map<String, Integer> response = new HashMap<>();
         response.put("listVersion", currentVersion);
         return response;
     }
 
+    // Request: PUT /list/{id}
     @PutMapping("/list/{id}")
     public Map<String, Integer> updateListElement(@PathVariable int id, @RequestBody Map<String, Integer> request) {
         int oldValue = request.get("oldValue");
         int newValue = request.get("newValue");
-        List<Integer> currentList = new ArrayList<>(listVersions.get(id - 1));
+        List<Integer> currentList = new ArrayList<>(versions.get(id - 1));
         int index = currentList.indexOf(oldValue);
         if (index != -1) {
             currentList.set(index, newValue);
-            listVersions.add(currentList);
+            versions.add(currentList);
             currentVersion++;
         }
         Map<String, Integer> response = new HashMap<>();
